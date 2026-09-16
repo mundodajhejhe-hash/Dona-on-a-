@@ -288,6 +288,23 @@ nav.links a.zap:hover{background:#fff}
 .cookie .desc{font-size:13.5px;font-weight:500;color:#403c36;margin-bottom:14px;flex:1}
 .linha-preco{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .preco{font-family:var(--display);font-size:21px;color:var(--mata)}
+.qtd-control{margin-top:auto}
+.qtd-add{width:100%}
+.stepper{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  background:var(--creme);border:3px solid var(--preto);border-radius:999px;
+  padding:8px 10px;box-shadow:0 4px 0 var(--preto);
+}
+.stepper button{
+  width:30px;height:30px;border-radius:50%;border:2px solid var(--preto);background:var(--rosa);color:#fff;
+  font-family:var(--display);font-size:17px;line-height:1;display:grid;place-items:center;cursor:pointer;
+}
+.stepper button:active{transform:scale(.92)}
+.stepper span{font-family:var(--display);min-width:20px;text-align:center;font-size:16px}
+.cookie.no-carrinho{box-shadow:0 0 0 5px var(--papel),7px 7px 0 var(--rosa),11px 12px 22px rgba(20,18,16,.22)!important}
+.extra-toggle{font:inherit;transition:.15s}
+.extra-toggle.ativo{background:var(--musgo);color:#fff;border-color:var(--preto)}
+.extra-toggle.ativo b{color:#fff}
 .tag{
   position:absolute;top:-14px;right:-10px;z-index:6;background:var(--rosa);color:#fff;
   font-family:var(--display);font-size:11px;padding:7px 11px;border:3px solid var(--preto);
@@ -450,6 +467,12 @@ footer small{opacity:.55;font-size:11.5px;display:block;margin-top:18px}
 .flutua:hover{transform:translateY(-3px) scale(1.03)}
 .flutua:active{transform:translateY(4px);box-shadow:0 2px 0 var(--preto)}
 .flutua svg{width:22px;height:22px;fill:#fff}
+.flutua.carrinho-ativo{
+  flex-direction:column;align-items:flex-end;gap:2px;background:linear-gradient(180deg,#FF74B0,var(--rosa) 60%,var(--rosa-esc));
+  padding:11px 18px;text-align:right;
+}
+.flutua.carrinho-ativo span:first-child{font-size:11px;font-weight:700;opacity:.95}
+.flutua-cta{font-family:var(--display);font-size:14px}
 
 /* carimbo circular giratório */
 .carimbo{
@@ -596,9 +619,11 @@ footer small{opacity:.55;font-size:11.5px;display:block;margin-top:18px}
         <figcaption>FAMÍLIA</figcaption>
       </figure>
     </div>
-    <p style="margin-top:28px;font-weight:800">Sabores disponíveis nos dois tamanhos:</p>
-    <div class="fileira" id="saboresTorta"></div>
-    <a class="btn btn-rosa" style="margin-top:24px" data-wa="tortas" href="#"><span>QUERO MINHA TORTA COOKIE 🥧</span></a>
+    <p style="margin-top:28px;font-weight:800">Sabores tamanho individual:</p>
+    <div class="fileira" id="saboresTortaIndividual"></div>
+    <p style="margin-top:22px;font-weight:800">Sabores tamanho família:</p>
+    <div class="fileira" id="saboresTortaFamilia"></div>
+    <p style="margin-top:18px;font-size:13.5px;font-weight:600;opacity:.8">💬 O preço da torta ainda não está no site — marca o sabor e o tamanho que você quer, que a gente combina o valor certinho no WhatsApp.</p>
   </div>
 </section>
 
@@ -883,17 +908,17 @@ ul.innerHTML = itens.map(t=>`<li>${t}</li>`).join("");
 /* cardápio */
 const grade = document.getElementById("grade");
 const cardCookie = (c) => `
-  <article class="cookie reveal">
+  <article class="cookie reveal" data-card-id="${c.id}">
     ${c.tag ? `<span class="tag">${c.tag}</span>` : ""}
     <div class="foto"><img src="${c.foto}" alt="Cookie de ${c.nome.toLowerCase()} da Dona Onça"></div>
     <h3>${c.nome}</h3>
     <p class="desc">${c.desc}</p>
     <div class="linha-preco"><span class="preco">R$ ${c.preco}</span></div>
-    <a class="btn btn-verde btn-mini" data-wa="Oi! Vim pelo site e quero pedir um Cookie ${tituloBonito(c.nome)} 🍪" href="#"><span>QUERO ESSE</span></a>
+    <div class="qtd-control" data-id="${c.id}" data-nome="${tituloBonito(c.nome)}" data-preco="${c.preco}"></div>
   </article>`;
 
 const cardDestaque = (d) => `
-  <article class="cookie destaque reveal">
+  <article class="cookie destaque reveal" data-card-id="kinder">
     <span class="tag" style="background:var(--ouro);color:var(--preto);top:-16px;right:-6px">${d.selo}</span>
     <div class="foto"><img src="${d.foto}" alt="Cookie de Kinder Bueno da Dona Onça com pedaços de Kinder Bueno por cima"></div>
     <div>
@@ -901,24 +926,32 @@ const cardDestaque = (d) => `
       <p class="desc">${d.desc}</p>
       <div class="linha-preco"><span class="preco" style="font-size:28px">R$ ${d.preco}</span>
         <span class="nota" style="font-size:20px">intenso do jeito que tem que ser</span></div>
-      <a class="btn btn-rosa" data-wa="Oi! Vim pelo site e quero pedir um Cookie Kinder Bueno 🤎" href="#"><span>QUERO O KINDER BUENO 🤎</span></a>
+      <div class="qtd-control" data-id="kinder" data-nome="Kinder Bueno" data-preco="${d.preco}"></div>
     </div>
   </article>`;
 
 function tituloBonito(nome){
-  return nome.charAt(0) + nome.slice(1).toLowerCase();
+  return nome.toLowerCase().replace(/(^|\s)\p{L}/gu, letra => letra.toUpperCase());
 }
 
 grade.innerHTML = CONFIG.cookies.map(cardCookie).join("") + cardDestaque(CONFIG.destaque);
 
-/* extras */
-document.getElementById("extras").innerHTML = CONFIG.extras.map(e=>`
-  <span class="extra">${e.emoji} ${e.nome} <b>+R$ ${e.preco}</b></span>`).join("");
+/* extras (toggle simples: dentro ou fora do pedido) */
+document.getElementById("extras").innerHTML = CONFIG.extras.map((e,i)=>`
+  <button type="button" class="extra extra-toggle" data-id="extra-${i}" data-nome="${e.nome}" data-preco="${e.preco}">
+    ${e.emoji} ${e.nome} <b>+R$ ${e.preco}</b>
+  </button>`).join("");
 
-/* sabores das tortas cookie (reaproveita os mesmos sabores dos cookies) */
-const nomesTorta = [...CONFIG.cookies.map(c=>c.nome), CONFIG.destaque.nome];
-document.getElementById("saboresTorta").innerHTML = nomesTorta.map(n=>`
-  <span class="extra">🍪 ${tituloBonito(n)}</span>`).join("");
+/* sabores das tortas cookie (reaproveita os mesmos sabores dos cookies), viram seleções sem preço */
+const nomesTortaSabores = [...CONFIG.cookies.map(c=>tituloBonito(c.nome)), tituloBonito(CONFIG.destaque.nome)];
+function pillsTorta(tamanho, prefixo){
+  return nomesTortaSabores.map((nome,i)=>`
+    <button type="button" class="extra extra-toggle" data-id="${prefixo}${i}" data-nome="Torta ${tamanho} — ${nome}" data-preco="0" data-sempreco="1">
+      🥧 ${nome}
+    </button>`).join("");
+}
+document.getElementById("saboresTortaIndividual").innerHTML = pillsTorta("Individual", "ti-");
+document.getElementById("saboresTortaFamilia").innerHTML = pillsTorta("Família", "tf-");
 
 /* pronta entrega */
 const pe = CONFIG.prontaEntrega;
@@ -927,8 +960,114 @@ document.getElementById("statusHoje").innerHTML =
 document.getElementById("textoHoje").innerHTML = `${pe.frase}<br><span style="font-weight:500;opacity:.8">${pe.detalhe}</span>`;
 document.getElementById("listaHoje").innerHTML = pe.saboresHoje.map(s=>`<li>🍪 ${s}</li>`).join("");
 
+/* ================= CARRINHO ================= */
 ligarLinksWA();
 document.getElementById("ano").textContent = new Date().getFullYear();
+
+const carrinho = {}; // { id: {nome, preco (number), qtd} }
+
+function precoParaNumero(str){ return parseFloat(String(str).replace(",", ".")) || 0; }
+function numeroParaPreco(n){ return n.toFixed(2).replace(".", ","); }
+
+function renderQtdControls(){
+  document.querySelectorAll(".qtd-control").forEach(el=>{
+    const id = el.dataset.id;
+    const qtd = carrinho[id]?.qtd || 0;
+    const card = el.closest(".cookie");
+    if(card) card.classList.toggle("no-carrinho", qtd > 0);
+    el.innerHTML = qtd === 0
+      ? `<button type="button" class="btn ${id==='kinder'?'btn-rosa':'btn-verde'} btn-mini qtd-add"><span>+ ADICIONAR</span></button>`
+      : `<div class="stepper">
+           <button type="button" class="qtd-menos" aria-label="Diminuir">−</button>
+           <span>${qtd}</span>
+           <button type="button" class="qtd-mais" aria-label="Aumentar">+</button>
+         </div>`;
+  });
+}
+
+function renderExtrasToggle(){
+  document.querySelectorAll(".extra-toggle").forEach(el=>{
+    const id = el.dataset.id;
+    el.classList.toggle("ativo", !!carrinho[id]);
+  });
+}
+
+function totalCarrinho(){
+  return Object.values(carrinho).reduce((soma,item)=> soma + (item.semPreco ? 0 : item.preco*item.qtd), 0);
+}
+function contagemCarrinho(){
+  return Object.values(carrinho).reduce((n,item)=> n + item.qtd, 0);
+}
+
+function montarMensagemCarrinho(){
+  const comPreco = Object.values(carrinho).filter(i=>!i.semPreco);
+  const semPreco = Object.values(carrinho).filter(i=>i.semPreco);
+  let msg = "Oi! Vim pelo site da Dona Onça e quero fazer esse pedido:\n";
+  comPreco.forEach(item => msg += `• ${item.qtd}x ${item.nome}\n`);
+  if(comPreco.length) msg += `\nTotal estimado: R$ ${numeroParaPreco(totalCarrinho())}\n`;
+  if(semPreco.length){
+    msg += `\nTambém quero (preço a combinar):\n`;
+    semPreco.forEach(item => msg += `• ${item.nome}\n`);
+  }
+  msg += `\nMe fala o valor${semPreco.length ? " da torta e" : ""} da entrega, por favor 🐆🍪`;
+  return msg;
+}
+
+function atualizarFlutuante(){
+  const n = contagemCarrinho();
+  if(n === 0){
+    zapFlutua.innerHTML = ORIGINAL_FLUTUA;
+    zapFlutua.href = zap(MENSAGENS.geral);
+    zapFlutua.classList.remove("carrinho-ativo");
+  } else {
+    const totalTxt = totalCarrinho() > 0 ? ` · R$ ${numeroParaPreco(totalCarrinho())}` : "";
+    zapFlutua.classList.add("carrinho-ativo");
+    zapFlutua.innerHTML = `<span>🛒 ${n} ${n===1?"item":"itens"}${totalTxt}</span><span class="flutua-cta">ENVIAR PEDIDO</span>`;
+    zapFlutua.href = zap(montarMensagemCarrinho());
+  }
+  renderQtdControls();
+  renderExtrasToggle();
+}
+
+const zapFlutua = document.getElementById("zapFlutua");
+const ORIGINAL_FLUTUA = zapFlutua.innerHTML;
+
+document.addEventListener("click",(ev)=>{
+  const add = ev.target.closest(".qtd-add");
+  if(add){
+    const wrap = add.closest(".qtd-control");
+    const {id,nome,preco} = wrap.dataset;
+    carrinho[id] = { nome, preco: precoParaNumero(preco), qtd: 1 };
+    atualizarFlutuante();
+    return;
+  }
+  const mais = ev.target.closest(".qtd-mais");
+  if(mais){
+    const wrap = mais.closest(".qtd-control");
+    carrinho[wrap.dataset.id].qtd++;
+    atualizarFlutuante();
+    return;
+  }
+  const menos = ev.target.closest(".qtd-menos");
+  if(menos){
+    const wrap = menos.closest(".qtd-control");
+    carrinho[wrap.dataset.id].qtd--;
+    if(carrinho[wrap.dataset.id].qtd <= 0) delete carrinho[wrap.dataset.id];
+    atualizarFlutuante();
+    return;
+  }
+  const extraToggle = ev.target.closest(".extra-toggle");
+  if(extraToggle){
+    const {id,nome,preco,sempreco} = extraToggle.dataset;
+    if(carrinho[id]) delete carrinho[id];
+    else carrinho[id] = { nome, preco: precoParaNumero(preco), qtd: 1, semPreco: sempreco === "1" };
+    atualizarFlutuante();
+    return;
+  }
+});
+
+atualizarFlutuante();
+/* ================= FIM CARRINHO ================= */
 
 /* vídeo de novidade: som e pausa fora da tela (economiza dados/bateria) */
 const videoTorta = document.getElementById("videoTorta");
